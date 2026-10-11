@@ -23,11 +23,9 @@ export const searchSearxng = async (
   opts?: SearxngSearchOptions,
 ) => {
   const primaryURL = getSearxngURL();
-  const instances = [
-    primaryURL,
-    'https://etsi.me',
-    'https://search.lumy.live',
-  ].filter(Boolean);
+  const instances = Array.from(
+    new Set([primaryURL, 'https://etsi.me', 'https://search.lumy.live'].filter(Boolean)),
+  );
 
   let lastError: any = null;
 
@@ -51,7 +49,7 @@ export const searchSearxng = async (
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
 
       const res = await fetch(url, {
         headers: {
@@ -72,12 +70,15 @@ export const searchSearxng = async (
       const results: SearxngSearchResult[] = data.results || [];
       const suggestions: string[] = data.suggestions || [];
 
-      return { results, suggestions };
+      if (results.length > 0) {
+        return { results, suggestions };
+      }
     } catch (err: any) {
       lastError = err;
       continue;
     }
   }
 
-  throw lastError || new Error('All SearXNG instances failed');
+  console.warn('All SearXNG instances failed or empty:', lastError?.message);
+  return { results: [], suggestions: [] };
 };
