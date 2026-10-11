@@ -53,25 +53,26 @@ export const executeSearch = async (input: {
         const queryEmbedding = allEmbeddings[0];
         const chunkEmbeddings = allEmbeddings.slice(1);
 
-        resultChunks = res.results
-          .map((r, i) => {
-            const content = contents[i];
-            const chunkEmbedding = chunkEmbeddings[i];
-            const similarity = chunkEmbedding
-              ? computeSimilarity(queryEmbedding, chunkEmbedding)
-              : 1;
+        const scoredChunks = res.results.map((r, i) => {
+          const content = contents[i];
+          const chunkEmbedding = chunkEmbeddings[i];
+          const similarity = chunkEmbedding
+            ? computeSimilarity(queryEmbedding, chunkEmbedding)
+            : 1;
 
-            return {
-              content,
-              metadata: {
-                title: r.title,
-                url: r.url,
-                similarity,
-                embedding: chunkEmbedding || [],
-              },
-            };
-          })
-          .filter((c) => c.metadata.similarity > 0.4);
+          return {
+            content,
+            metadata: {
+              title: r.title,
+              url: r.url,
+              similarity,
+              embedding: chunkEmbedding || [],
+            },
+          };
+        });
+
+        const highQuality = scoredChunks.filter((c) => c.metadata.similarity > 0.35);
+        resultChunks = highQuality.length > 0 ? highQuality : scoredChunks.slice(0, 10);
       } catch (err) {
         resultChunks = res.results.map((r) => {
           const content = r.content || r.title;

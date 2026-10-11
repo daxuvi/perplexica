@@ -18,6 +18,80 @@ interface SearxngSearchResult {
   iframe_src?: string;
 }
 
+export const searchDuckDuckGo = async (
+  query: string,
+): Promise<SearxngSearchResult[]> => {
+  try {
+    const params = new URLSearchParams({ q: query });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+    const res = await fetch('https://html.duckduckgo.com/html/', {
+      method: 'POST',
+      body: params.toString(),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) return [];
+
+    const html = await res.text();
+    const blocks = html.split('web-result');
+    const results: SearxngSearchResult[] = [];
+
+    for (const b of blocks.slice(1)) {
+      const linkMatch = b.match(/class="result__a"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/);
+      if (!linkMatch) continue;
+
+      let url = linkMatch[1];
+      if (url.includes('uddg=')) {
+        const uddgMatch = url.match(/uddg=([^&]+)/);
+        if (uddgMatch) url = decodeURIComponent(uddgMatch[1]);
+      }
+
+      const title = linkMatch[2]
+        .replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g, '&')
+        .replace(/&#x27;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .trim();
+
+      const snipMatch = b.match(/class="result__snippet"[^>]*>([\s\S]*?)<\/a>/);
+      const content = snipMatch
+        ? snipMatch[1]
+            .replace(/<[^>]+>/g, '')
+            .replace(/&amp;/g, '&')
+            .replace(/&#x27;/g, "'")
+            .replace(/&quot;/g, '"')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .trim()
+        : title;
+
+      if (title && url && !url.includes('duckduckgo.com')) {
+        results.push({
+          title,
+          url,
+          content,
+        });
+      }
+    }
+
+    return results;
+  } catch (err) {
+    console.warn('DuckDuckGo search error:', err);
+    return [];
+  }
+};
+
 export const searchSearxng = async (
   query: string,
   opts?: SearxngSearchOptions,
@@ -26,8 +100,6 @@ export const searchSearxng = async (
   const instances = Array.from(
     new Set([primaryURL, 'https://etsi.me', 'https://search.lumy.live'].filter(Boolean)),
   );
-
-  let lastError: any = null;
 
   for (const baseURL of instances) {
     try {
@@ -49,7 +121,7 @@ export const searchSearxng = async (
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
 
       const res = await fetch(url, {
         headers: {
@@ -73,12 +145,16 @@ export const searchSearxng = async (
       if (results.length > 0) {
         return { results, suggestions };
       }
-    } catch (err: any) {
-      lastError = err;
+    } catch {
       continue;
     }
   }
 
-  console.warn('All SearXNG instances failed or empty:', lastError?.message);
+  // Fallback to DuckDuckGo if SearXNG instances fail, timeout, or return empty results
+  const ddgResults = await searchDuckDuckGo(query);
+  if (ddgResults.length > 0) {
+    return { results: ddgResults, suggestions: [] };
+  }
+
   return { results: [], suggestions: [] };
 };
