@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perplexica Pro - AI Research Engine (Gemini Pro)</title>
+  <meta name="description" content="Trình tìm kiếm và nghiên cứu thông tin AI cá nhân hóa với Google Gemini Pro & Google Search thời gian thực. Thay thế hoàn hảo Perplexity Pro.">
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="brand-wrapper" id="brand-home-link">
+          <img src="assets/logo.jpg" alt="Logo" class="brand-logo">
+          <span class="brand-title">Perplexica<span class="brand-badge">PRO</span></span>
+        </a>
+      </div>
+
+      <button type="button" class="btn-new-thread" id="btn-new-thread">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Cuộc trò chuyện mới
+      </button>
+
+      <div class="sidebar-content">
+        <div class="history-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>Lịch sử tìm kiếm</span>
+          <button type="button" id="btn-clear-history" title="Xóa tất cả lịch sử" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.72rem;">Xóa hết</button>
+        </div>
+        <ul class="history-list" id="history-list">
+          <!-- History items injected here via JS -->
+        </ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <button type="button" class="btn-settings" id="btn-open-settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          Cài đặt & API Key
+        </button>
+
+        <div class="status-indicator">
+          <span>Gemini Pro API</span>
+          <span id="api-status-badge">
+            <span class="status-dot inactive" id="status-dot"></span>
+            <span id="status-text">Chưa kết nối</span>
+          </span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN VIEW -->
+    <main class="main-view">
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <div class="nav-left">
+          <button type="button" class="btn-sidebar-toggle" id="btn-toggle-sidebar" title="Đóng/Mở Sidebar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="model-chip" id="top-model-chip" title="Bấm để đổi mô hình">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <span id="current-model-name">Gemini 1.5 Pro</span>
+          </div>
+        </div>
+
+        <div class="nav-right">
+          <button type="button" class="btn-action-sm" id="btn-export-chat" title="Xuất nội dung trò chuyện">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Xuất MD
+          </button>
+        </div>
+      </header>
+
+      <!-- Scrollable Content Area -->
+      <div class="content-scroll-container" id="content-container">
+        
+        <!-- WELCOME HERO VIEW -->
+        <div class="hero-container" id="hero-view">
+          <div class="hero-avatar-box">
+            <img src="assets/logo.jpg" alt="AI Prism" class="hero-avatar-img">
+          </div>
+          <h1 class="hero-title">Bạn muốn tìm hiểu điều gì hôm nay?</h1>
+          <p class="hero-subtitle">Tìm kiếm thông minh, trích dẫn thời gian thực và nghiên cứu chuyên sâu được tăng cường bởi Google Gemini Pro.</p>
+
+          <!-- HERO SEARCH BOX -->
+          <div class="search-box-wrapper" id="hero-search-wrapper">
+            <!-- Focus Pills -->
+            <div class="focus-pills-row" id="hero-focus-pills">
+              <button type="button" class="focus-pill active" data-mode="web">
+                <span>🌐</span> Tìm kiếm Web
+              </button>
+              <button type="button" class="focus-pill" data-mode="pro">
+                <span>🔬</span> Nghiên cứu sâu (Pro)
+              </button>
+              <button type="button" class="focus-pill" data-mode="academic">
+                <span>🎓</span> Học thuật
+              </button>
+              <button type="button" class="focus-pill" data-mode="code">
+                <span>💻</span> Code & Kỹ thuật
+              </button>
+              <button type="button" class="focus-pill" data-mode="writing">
+                <span>✍️</span> Sáng tạo & Viết
+              </button>
+            </div>
+
+            <!-- Input area -->
+            <div class="search-input-area">
+              <textarea 
+                id="hero-input" 
+                class="search-textarea" 
+                placeholder="Đặt bất kỳ câu hỏi nào hoặc tìm kiếm chủ đề nghiên cứu..." 
+                rows="1"
+              ></textarea>
+            </div>
+
+            <!-- Action bar -->
+            <div class="search-action-bar">
+              <div class="search-tools-left">
+                <input type="file" id="hero-file-input" style="display: none;" accept="image/*,.pdf,.txt,.md">
+                <button type="button" class="btn-tool-icon" id="btn-hero-attach" title="Đính kèm ảnh hoặc tài liệu">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                  </svg>
+                </button>
+                <div class="attachment-preview-chip" id="hero-attach-chip">
+                  <span id="hero-attach-name">file.png</span>
+                  <button type="button" class="btn-remove-attachment" id="btn-hero-remove-attach">&times;</button>
+                </div>
+              </div>
+
+              <button type="button" class="btn-submit-search" id="btn-hero-submit" title="Tìm kiếm (Enter)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Suggestions -->
+          <div class="suggestions-grid">
+            <div class="suggestion-card" data-prompt="Tóm tắt những phát triển và đột phá AI đáng chú ý nhất tuần này">
+              <span class="suggestion-icon">🚀</span>
+              <span class="suggestion-text">Đột phá công nghệ AI mới nhất tuần này</span>
+            </div>
+            <div class="suggestion-card" data-prompt="So sánh chi tiết DeepSeek R1, Claude 3.5 Sonnet và Google Gemini 1.5 Pro: Điểm mạnh, điểm yếu và chi phí">
+              <span class="suggestion-icon">⚖️</span>
+              <span class="suggestion-text">So sánh DeepSeek R1, Claude 3.5 & Gemini 1.5 Pro</span>
+            </div>
+            <div class="suggestion-card" data-prompt="Hướng dẫn từng bước xây dựng hệ thống AI Agent tự động hóa công việc với Python">
+              <span class="suggestion-icon">🤖</span>
+              <span class="suggestion-text">Cách tự xây dựng AI Agent tự động hóa</span>
+            </div>
+            <div class="suggestion-card" data-prompt="Giải thích nguyên lý hoạt động của máy tính lượng tử (Quantum Computing) một cách trực quan, dễ hiểu">
+              <span class="suggestion-icon">⚛️</span>
+              <span class="suggestion-text">Giải thích máy tính lượng tử trực quan</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- THREAD / ACTIVE SEARCH RESULTS VIEW -->
+        <div class="thread-container" id="thread-view">
+          <!-- Dynamically filled with conversation blocks -->
+        </div>
+
+      </div>
+
+      <!-- STICKY BOTTOM SEARCH BAR (When inside active thread) -->
+      <div class="sticky-bottom-bar" id="sticky-bar" style="display: none;">
+        <div class="search-box-wrapper" style="max-width: 860px;">
+          <div class="search-input-area">
+            <textarea 
+              id="sticky-input" 
+              class="search-textarea" 
+              placeholder="Đặt câu hỏi tiếp theo để đào sâu chủ đề..." 
+              rows="1"
+            ></textarea>
+          </div>
+          <div class="search-action-bar">
+            <div class="search-tools-left">
+              <input type="file" id="sticky-file-input" style="display: none;" accept="image/*,.pdf,.txt,.md">
+              <button type="button" class="btn-tool-icon" id="btn-sticky-attach" title="Đính kèm ảnh hoặc tài liệu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                </svg>
+              </button>
+              <div class="attachment-preview-chip" id="sticky-attach-chip">
+                <span id="sticky-attach-name">file.png</span>
+                <button type="button" class="btn-remove-attachment" id="btn-sticky-remove-attach">&times;</button>
+              </div>
+              <span class="focus-pill active" id="sticky-mode-indicator" style="font-size: 0.76rem; padding: 3px 10px; cursor: default;">
+                🌐 Tìm kiếm Web
+              </span>
+            </div>
+            <button type="button" class="btn-submit-search" id="btn-sticky-submit" title="Gửi (Enter)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Cài đặt & Cấu hình AI</h2>
+        <button type="button" class="btn-close-modal" id="btn-close-settings">&times;</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="setting-api-key">Google Gemini API Key</label>
+        <div class="key-input-wrapper">
+          <input 
+            type="password" 
+            id="setting-api-key" 
+            class="form-input" 
+            style="flex: 1;" 
+            placeholder="AIzaSy..." 
+            autocomplete="off"
+          >
+          <button type="button" class="btn-action-sm" id="btn-toggle-key-visibility">👁️</button>
+          <button type="button" class="btn-test-key" id="btn-test-key">Kiểm tra key</button>
+        </div>
+        <div id="key-test-feedback" class="key-status-msg"></div>
+        <small style="color: var(--text-muted); font-size: 0.78rem;">
+          Lấy API key hoàn toàn miễn phí tại <a href="https://aistudio.google.com/" target="_blank" style="color: var(--accent-cyan);">Google AI Studio</a>.
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="setting-model">Mô hình AI mặc định</label>
+        <select id="setting-model" class="form-select">
+          <option value="gemini-flash-latest">Gemini Flash (Khuyên dùng - Tốc độ cao & Ổn định nhất)</option>
+          <option value="gemini-pro-latest">Gemini Pro (Phân tích & Suy luận chuyên sâu)</option>
+          <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Gọn nhẹ & Tiết kiệm)</option>
+          <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+          <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Google Search Grounding (Tìm kiếm trực tiếp)</label>
+        <select id="setting-grounding" class="form-select">
+          <option value="true">Bật (Tự động tra cứu Google Search theo thời gian thực)</option>
+          <option value="false">Tắt (Chỉ dùng tri thức tĩnh của mô hình)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="setting-temperature">Nhiệt độ sáng tạo (Temperature): <span id="temp-val">0.7</span></label>
+        <input type="range" id="setting-temperature" min="0" max="1" step="0.1" value="0.7">
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-action-sm" id="btn-cancel-settings">Hủy</button>
+        <button type="button" class="btn-modal-save" id="btn-save-settings">Lưu cài đặt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

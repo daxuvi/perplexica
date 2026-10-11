@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_QuwY1a1ZtZnaXwR51KkuU2lHkTmr",
+  "orgId": "team_XxeUTMwUH3a6hSZ9Qtxr1jF9",
+  "projectName": "perplexica",
+  "settings": {
+    "createdAt": 1791530567973,
+    "framework": "node",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}

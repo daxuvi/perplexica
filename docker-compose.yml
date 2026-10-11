@@ -1,0 +1,24 @@
+services:
+  perplexica:
+    image: itzcrazykns1337/vane:latest
+    container_name: perplexica-engine
+    ports:
+      - "3000:3000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PORT=3000
+    volumes:
+      - perplexica-data:/home/vane/data
+    restart: unless-stopped
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: perplexica-tunnel
+    command: tunnel --no-autoupdate --url http://perplexica:3000
+    restart: unless-stopped
+    depends_on:
+      - perplexica
+
+volumes:
+  perplexica-data:
+    name: perplexica-data

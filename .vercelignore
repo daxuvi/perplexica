@@ -1,0 +1,15 @@
+_temp_clone
+_temp_clone/
+legacy-backup
+legacy-backup/
+data
+data/
+searxng
+searxng/
+*.bat
+docker-compose*.y*ml
+Dockerfile*
+entrypoint.sh
+HUONG_DAN*.md
+.git
+.git/
