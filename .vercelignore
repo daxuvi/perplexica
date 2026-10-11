@@ -13,3 +13,5 @@ entrypoint.sh
 HUONG_DAN*.md
 .git
 .git/
+.vercel
+.vercel/

@@ -12,6 +12,7 @@ dist/
 .vscode/
 .idea/
 *.iml
+.vercel/
 
 # Environment variables
 .env
