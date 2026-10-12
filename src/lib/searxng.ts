@@ -44,18 +44,22 @@ export const searchDuckDuckGo = async (
       const html = await res.text();
       const results: SearxngSearchResult[] = [];
 
-      const linkMatches = [...html.matchAll(/<a[^>]*class=['"]result-link['"][^>]*>([\s\S]*?)<\/a>/gi)];
-      const hrefMatches = [...html.matchAll(/<a[^>]*href=['"]([^'"]+)['"][^>]*class=['"]result-link['"]/gi)];
-      const hrefAfterMatches = [...html.matchAll(/<a[^>]*class=['"]result-link['"][^>]*href=['"]([^'"]+)['"]/gi)];
-      const snippetMatches = [...html.matchAll(/<td[^>]*class=['"]result-snippet['"][^>]*>([\s\S]*?)<\/td>/gi)];
+      const linkMatches = [
+        ...html.matchAll(
+          /<a\b[^>]*class=['"][^'"]*result-link[^'"]*['"][^>]*>([\s\S]*?)<\/a>/gi,
+        ),
+      ];
+      const snippetMatches = [
+        ...html.matchAll(
+          /<td\b[^>]*class=['"][^'"]*result-snippet[^'"]*['"][^>]*>([\s\S]*?)<\/td>/gi,
+        ),
+      ];
 
       for (let i = 0; i < linkMatches.length; i++) {
-        const rawUrl =
-          (hrefMatches[i] && hrefMatches[i][1]) ||
-          (hrefAfterMatches[i] && hrefAfterMatches[i][1]) ||
-          '';
+        const fullTag = linkMatches[i][0];
+        const hrefMatch = fullTag.match(/href=['"]([^'"]+)['"]/i);
+        let url = hrefMatch ? hrefMatch[1] : '';
 
-        let url = rawUrl;
         if (url.includes('uddg=')) {
           const u = url.match(/uddg=([^&]+)/);
           if (u) url = decodeURIComponent(u[1]);
@@ -63,7 +67,8 @@ export const searchDuckDuckGo = async (
 
         const title = linkMatches[i][1].replace(/<[^>]+>/g, '').trim();
         const content =
-          (snippetMatches[i] && snippetMatches[i][1].replace(/<[^>]+>/g, '').trim()) ||
+          (snippetMatches[i] &&
+            snippetMatches[i][1].replace(/<[^>]+>/g, '').trim()) ||
           title;
 
         if (title && url && !url.includes('duckduckgo.com')) {

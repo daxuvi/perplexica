@@ -40,3 +40,4 @@ db.sqlite
 /searxng
 
 certificates
+.vercel

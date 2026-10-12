@@ -7,9 +7,10 @@ import {
 } from '../../types';
 
 const FALLBACK_MODELS = [
+  'models/gemini-3.5-flash-lite',
+  'models/gemini-3-flash-preview',
   'models/gemini-flash-lite-latest',
   'models/gemini-3.1-flash-lite',
-  'models/gemini-3.5-flash',
 ];
 
 class GeminiLLM extends OpenAILLM {
