@@ -24,7 +24,70 @@ export const searchDuckDuckGo = async (
   try {
     const params = new URLSearchParams({ q: query });
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2500);
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+    // 1. Try DuckDuckGo Lite first (extremely fast ~200ms, text-only, never blocked by cloud/datacenter IPs)
+    const res = await fetch('https://lite.duckduckgo.com/lite/', {
+      method: 'POST',
+      body: params.toString(),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const html = await res.text();
+      const results: SearxngSearchResult[] = [];
+
+      const linkMatches = [...html.matchAll(/<a[^>]*class=['"]result-link['"][^>]*>([\s\S]*?)<\/a>/gi)];
+      const hrefMatches = [...html.matchAll(/<a[^>]*href=['"]([^'"]+)['"][^>]*class=['"]result-link['"]/gi)];
+      const hrefAfterMatches = [...html.matchAll(/<a[^>]*class=['"]result-link['"][^>]*href=['"]([^'"]+)['"]/gi)];
+      const snippetMatches = [...html.matchAll(/<td[^>]*class=['"]result-snippet['"][^>]*>([\s\S]*?)<\/td>/gi)];
+
+      for (let i = 0; i < linkMatches.length; i++) {
+        const rawUrl =
+          (hrefMatches[i] && hrefMatches[i][1]) ||
+          (hrefAfterMatches[i] && hrefAfterMatches[i][1]) ||
+          '';
+
+        let url = rawUrl;
+        if (url.includes('uddg=')) {
+          const u = url.match(/uddg=([^&]+)/);
+          if (u) url = decodeURIComponent(u[1]);
+        }
+
+        const title = linkMatches[i][1].replace(/<[^>]+>/g, '').trim();
+        const content =
+          (snippetMatches[i] && snippetMatches[i][1].replace(/<[^>]+>/g, '').trim()) ||
+          title;
+
+        if (title && url && !url.includes('duckduckgo.com')) {
+          results.push({
+            title,
+            url,
+            content,
+          });
+        }
+      }
+
+      if (results.length > 0) {
+        return results;
+      }
+    }
+  } catch (err) {
+    console.warn('DuckDuckGo Lite search error:', err);
+  }
+
+  // 2. Fallback to html.duckduckgo.com
+  try {
+    const params = new URLSearchParams({ q: query });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
 
     const res = await fetch('https://html.duckduckgo.com/html/', {
       method: 'POST',
@@ -87,7 +150,7 @@ export const searchDuckDuckGo = async (
 
     return results;
   } catch (err) {
-    console.warn('DuckDuckGo search error:', err);
+    console.warn('DuckDuckGo HTML search error:', err);
     return [];
   }
 };
