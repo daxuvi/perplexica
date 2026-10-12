@@ -43,9 +43,6 @@ class GeminiProvider extends BaseModelProvider<GeminiConfig> {
     const data = await res.json();
 
     const retiredModels = new Set([
-      'models/gemini-2.5-flash',
-      'models/gemini-2.5-pro',
-      'models/gemini-2.5-flash-lite',
       'models/gemini-2.5-flash-image',
       'models/gemini-2.5-computer-use-preview-10-2025',
       'models/text-embedding-004',
@@ -77,15 +74,17 @@ class GeminiProvider extends BaseModelProvider<GeminiConfig> {
       });
     }
 
-    // Sort to ensure the fastest, active, tested models appear at the top
+    // Sort to ensure the top Gemini Pro and fastest Flash models appear at the top
     const priorityChatOrder = [
-      'models/gemini-3.5-flash',
-      'models/gemini-3.1-flash-lite',
+      'models/gemini-3.1-pro-preview-customtools',
+      'models/gemini-3.1-pro-preview',
+      'models/gemini-pro-latest',
+      'models/gemini-2.5-pro',
       'models/gemini-3.8-flash',
       'models/gemini-flash-latest',
-      'models/gemini-3.7-flash',
-      'models/gemini-3.6-flash',
-      'models/gemini-pro-latest',
+      'models/gemini-3.5-flash',
+      'models/gemini-3.1-flash-lite',
+      'models/gemini-flash-lite-latest',
     ];
 
     activeChatModels.sort((a, b) => {
@@ -132,14 +131,8 @@ class GeminiProvider extends BaseModelProvider<GeminiConfig> {
   }
 
   async loadChatModel(key: string): Promise<BaseLLM<any>> {
-    // Remap retired models or legacy names to active working models
-    if (
-      !key ||
-      key.includes('gemini-2.5-flash') ||
-      key.includes('gemini-2.5-pro') ||
-      key === 'gemini'
-    ) {
-      key = 'models/gemini-3.5-flash';
+    if (!key || key === 'default' || key === 'gemini') {
+      key = 'models/gemini-3.1-pro-preview-customtools';
     }
 
     if (!key.startsWith('models/')) {

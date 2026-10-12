@@ -47,49 +47,58 @@ export const executeSearch = async (input: {
 
       let resultChunks: Chunk[] = [];
 
-      try {
-        const contents = res.results.map((r) => r.content || r.title);
-        const allEmbeddings = await input.embedding.embedText([q, ...contents]);
-        const queryEmbedding = allEmbeddings[0];
-        const chunkEmbeddings = allEmbeddings.slice(1);
+      if (input.mode === 'speed') {
+        resultChunks = res.results.slice(0, 8).map((r) => ({
+          content: r.content || r.title,
+          metadata: {
+            title: r.title,
+            url: r.url,
+            similarity: 1,
+            embedding: [],
+          },
+        }));
+      } else {
+        try {
+          const topResults = res.results.slice(0, 10);
+          const contents = topResults.map((r) => r.content || r.title);
+          const allEmbeddings = await input.embedding.embedText([q, ...contents]);
+          const queryEmbedding = allEmbeddings[0];
+          const chunkEmbeddings = allEmbeddings.slice(1);
 
-        const scoredChunks = res.results.map((r, i) => {
-          const content = contents[i];
-          const chunkEmbedding = chunkEmbeddings[i];
-          const similarity = chunkEmbedding
-            ? computeSimilarity(queryEmbedding, chunkEmbedding)
-            : 1;
+          const scoredChunks = topResults.map((r, i) => {
+            const content = contents[i];
+            const chunkEmbedding = chunkEmbeddings[i];
+            const similarity = chunkEmbedding
+              ? computeSimilarity(queryEmbedding, chunkEmbedding)
+              : 1;
 
-          return {
-            content,
-            metadata: {
-              title: r.title,
-              url: r.url,
-              similarity,
-              embedding: chunkEmbedding || [],
-            },
-          };
-        });
+            return {
+              content,
+              metadata: {
+                title: r.title,
+                url: r.url,
+                similarity,
+                embedding: chunkEmbedding || [],
+              },
+            };
+          });
 
-        const highQuality = scoredChunks.filter((c) => c.metadata.similarity > 0.35);
-        resultChunks = highQuality.length > 0 ? highQuality : scoredChunks.slice(0, 10);
-      } catch (err) {
-        resultChunks = res.results.map((r) => {
-          const content = r.content || r.title;
-
-          return {
-            content,
+          const highQuality = scoredChunks.filter((c) => c.metadata.similarity > 0.35);
+          resultChunks = highQuality.length > 0 ? highQuality : scoredChunks.slice(0, 8);
+        } catch (err) {
+          resultChunks = res.results.slice(0, 8).map((r) => ({
+            content: r.content || r.title,
             metadata: {
               title: r.title,
               url: r.url,
               similarity: 1,
               embedding: [],
             },
-          };
-        });
-      } finally {
-        results.push(...resultChunks);
+          }));
+        }
       }
+
+      results.push(...resultChunks);
 
       if (!searchResultsEmitted) {
         searchResultsEmitted = true;

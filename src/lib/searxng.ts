@@ -24,7 +24,7 @@ export const searchDuckDuckGo = async (
   try {
     const params = new URLSearchParams({ q: query });
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
 
     const res = await fetch('https://html.duckduckgo.com/html/', {
       method: 'POST',
@@ -97,13 +97,15 @@ export const searchSearxng = async (
   opts?: SearxngSearchOptions,
 ) => {
   const primaryURL = getSearxngURL();
-  const instances = Array.from(
-    new Set([primaryURL, 'https://etsi.me', 'https://search.lumy.live'].filter(Boolean)),
-  );
 
-  for (const baseURL of instances) {
+  // 1. If user configured a dedicated local/private SearXNG instance (not the default public ones), try it first
+  if (
+    primaryURL &&
+    !primaryURL.includes('etsi.me') &&
+    !primaryURL.includes('search.lumy.live')
+  ) {
     try {
-      const cleanBase = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL;
+      const cleanBase = primaryURL.endsWith('/') ? primaryURL.slice(0, -1) : primaryURL;
       const url = new URL(`${cleanBase}/search?format=json`);
       url.searchParams.append('q', query);
 
@@ -112,16 +114,14 @@ export const searchSearxng = async (
           const value = opts[key as keyof SearxngSearchOptions];
           if (Array.isArray(value)) {
             url.searchParams.append(key, value.join(','));
-            return;
-          }
-          if (value !== undefined) {
+          } else if (value !== undefined) {
             url.searchParams.append(key, value as string);
           }
         });
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const timeoutId = setTimeout(() => controller.abort(), 1500);
 
       const res = await fetch(url, {
         headers: {
@@ -134,26 +134,57 @@ export const searchSearxng = async (
 
       clearTimeout(timeoutId);
 
-      if (!res.ok) {
-        throw new Error(`SearXNG error from ${cleanBase}: ${res.statusText}`);
+      if (res.ok) {
+        const data = await res.json();
+        const results: SearxngSearchResult[] = data.results || [];
+        const suggestions: string[] = data.suggestions || [];
+        if (results.length > 0) {
+          return { results, suggestions };
+        }
       }
+    } catch {
+      // Continue to fast search
+    }
+  }
 
-      const data = await res.json();
-      const results: SearxngSearchResult[] = data.results || [];
-      const suggestions: string[] = data.suggestions || [];
+  // 2. Fast DuckDuckGo search (sub-second retrieval, bypasses broken public SearXNG rate-limits)
+  const ddgResults = await searchDuckDuckGo(query);
+  if (ddgResults.length > 0) {
+    return { results: ddgResults, suggestions: [] };
+  }
 
-      if (results.length > 0) {
-        return { results, suggestions };
+  // 3. Fallback: try public SearXNG instances with short timeout
+  const publicInstances = ['https://etsi.me', 'https://search.lumy.live'];
+  for (const baseURL of publicInstances) {
+    try {
+      const url = new URL(`${baseURL}/search?format=json`);
+      url.searchParams.append('q', query);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1200);
+
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          Accept: 'application/json',
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        const results: SearxngSearchResult[] = data.results || [];
+        const suggestions: string[] = data.suggestions || [];
+        if (results.length > 0) {
+          return { results, suggestions };
+        }
       }
     } catch {
       continue;
     }
-  }
-
-  // Fallback to DuckDuckGo if SearXNG instances fail, timeout, or return empty results
-  const ddgResults = await searchDuckDuckGo(query);
-  if (ddgResults.length > 0) {
-    return { results: ddgResults, suggestions: [] };
   }
 
   return { results: [], suggestions: [] };

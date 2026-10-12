@@ -17,7 +17,7 @@ class ConfigManager {
     personalization: {},
     modelProviders: [],
     search: {
-      searxngURL: process.env.SEARXNG_API_URL || 'https://etsi.me',
+      searxngURL: process.env.SEARXNG_API_URL || '',
     },
   };
   uiConfigSections: UIConfigSections = {

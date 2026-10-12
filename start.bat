@@ -27,7 +27,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [*] Dang khoi chay container Perplexica...
-docker compose up -d
+docker compose up -d --build
 
 echo.
 echo [v] Perplexica da chay thanh cong tai: http://localhost:3000

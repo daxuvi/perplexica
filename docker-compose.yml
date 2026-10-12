@@ -1,6 +1,8 @@
 services:
   perplexica:
-    image: itzcrazykns1337/vane:latest
+    image: perplexica-pro:local
+    build:
+      context: .
     container_name: perplexica-engine
     ports:
       - "3000:3000"

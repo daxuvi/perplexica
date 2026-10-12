@@ -14,10 +14,10 @@ class Researcher {
     let actionOutput: ActionOutput[] = [];
     let maxIteration =
       input.config.mode === 'speed'
-        ? 2
+        ? 1
         : input.config.mode === 'balanced'
-          ? 6
-          : 25;
+          ? 2
+          : 5;
 
     const availableTools = ActionRegistry.getAvailableActionTools({
       classification: input.classification,

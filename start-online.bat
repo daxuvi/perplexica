@@ -28,7 +28,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [*] Đang khởi động Perplexica & Cloudflare Tunnel...
-docker compose up -d
+docker compose up -d --build
 
 echo.
 echo [*] Đang chờ cấp link Cloudflare Tunnel ra Internet...
