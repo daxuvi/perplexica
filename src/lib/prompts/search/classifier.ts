@@ -43,7 +43,7 @@ You basically have to rephrase the user's query in a way that it can be understo
 Say for example the converastion is about cars and the user says "How do they work" then the standalone follow up should be "How do cars work?"
 
 Do not contain excess information or everything that has been discussed before, just reformulate the user's last query in a self contained manner.
-The standalone follow-up should be concise and to the point.
+The standalone follow-up should be concise and to the point. Always keep the standalone follow-up in the EXACT SAME LANGUAGE as the user's query (e.g., if user writes in Vietnamese, the standalone follow-up MUST be in Vietnamese).
 </standalone_followup>
 
 <output_format>

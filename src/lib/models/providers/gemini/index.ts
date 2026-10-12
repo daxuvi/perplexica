@@ -74,17 +74,17 @@ class GeminiProvider extends BaseModelProvider<GeminiConfig> {
       });
     }
 
-    // Sort to ensure the top Gemini Pro and fastest Flash models appear at the top
+    // Sort to ensure the fastest, free Flash models appear at the top, followed by Pro
     const priorityChatOrder = [
+      'models/gemini-flash-latest',
+      'models/gemini-3.8-flash',
+      'models/gemini-3.5-flash',
+      'models/gemini-3.1-flash-lite',
+      'models/gemini-flash-lite-latest',
       'models/gemini-3.1-pro-preview-customtools',
       'models/gemini-3.1-pro-preview',
       'models/gemini-pro-latest',
       'models/gemini-2.5-pro',
-      'models/gemini-3.8-flash',
-      'models/gemini-flash-latest',
-      'models/gemini-3.5-flash',
-      'models/gemini-3.1-flash-lite',
-      'models/gemini-flash-lite-latest',
     ];
 
     activeChatModels.sort((a, b) => {
@@ -132,7 +132,7 @@ class GeminiProvider extends BaseModelProvider<GeminiConfig> {
 
   async loadChatModel(key: string): Promise<BaseLLM<any>> {
     if (!key || key === 'default' || key === 'gemini') {
-      key = 'models/gemini-3.1-pro-preview-customtools';
+      key = 'models/gemini-flash-latest';
     }
 
     if (!key.startsWith('models/')) {

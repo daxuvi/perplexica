@@ -44,7 +44,7 @@ const bodySchema = z.object({
   files: z.array(z.string()).optional().default([]),
   chatModel: chatModelSchema.optional().default({
     providerId: '54366ed4-9a18-4093-9f12-268005be5ca8',
-    key: 'models/gemini-3.1-pro-preview-customtools',
+    key: 'models/gemini-flash-latest',
   }),
   embeddingModel: embeddingModelSchema.optional().default({
     providerId: '54366ed4-9a18-4093-9f12-268005be5ca8',
